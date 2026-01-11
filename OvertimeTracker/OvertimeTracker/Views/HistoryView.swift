@@ -12,41 +12,61 @@ struct HistoryView: View {
     @Environment(\.dismiss) var dismiss
 
     var body: some View {
-        NavigationView {
-            List {
-                let weeks = dataManager.getAllWeeks()
+        ZStack {
+            // Beautiful gradient background
+            LinearGradient(
+                gradient: Gradient(colors: [
+                    Color(red: 0.4, green: 0.2, blue: 0.8),
+                    Color(red: 0.2, green: 0.4, blue: 0.9),
+                    Color(red: 0.3, green: 0.6, blue: 1.0)
+                ]),
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .ignoresSafeArea()
 
-                if weeks.isEmpty {
-                    VStack(spacing: 16) {
-                        Image(systemName: "clock.badge.questionmark")
-                            .font(.system(size: 60))
-                            .foregroundColor(.gray)
-                        Text("No History Available")
-                            .font(.headline)
-                            .foregroundColor(.secondary)
-                        Text("Start tracking your overtime to see history here")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                            .multilineTextAlignment(.center)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 60)
-                    .listRowBackground(Color.clear)
-                } else {
-                    ForEach(weeks) { week in
-                        WeekHistoryCard(week: week)
-                            .listRowSeparator(.hidden)
-                            .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
-                    }
-                }
-            }
-            .listStyle(.plain)
-            .navigationTitle("History")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
+            VStack(spacing: 0) {
+                // Custom Header
+                HStack {
+                    Text("HISTORY")
+                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                        .foregroundColor(.white)
+                    Spacer()
                     Button("Done") {
                         dismiss()
+                    }
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundColor(.white)
+                }
+                .padding()
+                .background(Color.clear)
+
+                ScrollView {
+                    let weeks = dataManager.getAllWeeks()
+
+                    if weeks.isEmpty {
+                        VStack(spacing: 20) {
+                            Image(systemName: "clock.badge.questionmark")
+                                .font(.system(size: 70))
+                                .foregroundColor(.white.opacity(0.6))
+                            Text("No History Available")
+                                .font(.system(size: 22, weight: .bold, design: .rounded))
+                                .foregroundColor(.white)
+                            Text("Start tracking your overtime to see history here")
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundColor(.white.opacity(0.7))
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal, 40)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 100)
+                    } else {
+                        VStack(spacing: 14) {
+                            ForEach(weeks) { week in
+                                WeekHistoryCard(week: week)
+                            }
+                        }
+                        .padding()
                     }
                 }
             }
@@ -59,83 +79,112 @@ struct WeekHistoryCard: View {
     @State private var isExpanded = false
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 0) {
             // Week Header
-            Button(action: { withAnimation { isExpanded.toggle() } }) {
+            Button(action: {
+                withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                    isExpanded.toggle()
+                }
+            }) {
                 HStack {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(weekRange)
-                            .font(.headline)
-                            .foregroundColor(.primary)
+                            .font(.system(size: 18, weight: .bold, design: .rounded))
+                            .foregroundColor(.white)
                         Text("\(week.entries.count) day\(week.entries.count == 1 ? "" : "s") logged")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundColor(.white.opacity(0.7))
                     }
 
                     Spacer()
 
-                    VStack(alignment: .trailing, spacing: 4) {
+                    VStack(alignment: .trailing, spacing: 2) {
+                        Text("TOTAL")
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundColor(.white.opacity(0.7))
+                            .tracking(1)
                         Text(week.totalFormatted)
-                            .font(.title3)
-                            .fontWeight(.bold)
-                            .foregroundColor(.blue)
-                        Text("Total")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+                            .font(.system(size: 20, weight: .bold, design: .rounded))
+                            .foregroundColor(.white)
                     }
 
-                    Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
-                        .foregroundColor(.secondary)
+                    Image(systemName: "chevron.down")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(.white.opacity(0.7))
+                        .rotationEffect(.degrees(isExpanded ? 180 : 0))
                         .padding(.leading, 8)
                 }
+                .padding()
             }
             .buttonStyle(.plain)
 
             // Expanded Details
             if isExpanded {
-                Divider()
+                VStack(spacing: 12) {
+                    Divider()
+                        .background(Color.white.opacity(0.3))
+                        .padding(.horizontal)
 
-                VStack(spacing: 8) {
-                    ForEach(week.entries.sorted(by: { $0.date < $1.date })) { entry in
-                        HStack {
-                            Text(dayName(for: entry.date))
-                                .font(.subheadline)
-                                .frame(width: 80, alignment: .leading)
+                    VStack(spacing: 10) {
+                        ForEach(week.entries.sorted(by: { $0.date < $1.date })) { entry in
+                            HStack {
+                                Text(dayName(for: entry.date))
+                                    .font(.system(size: 15, weight: .semibold))
+                                    .foregroundColor(.white)
+                                    .frame(width: 90, alignment: .leading)
 
-                            Text(dateFormatted(entry.date))
-                                .font(.caption)
-                                .foregroundColor(.secondary)
+                                Text(dateFormatted(entry.date))
+                                    .font(.system(size: 13, weight: .medium))
+                                    .foregroundColor(.white.opacity(0.7))
 
-                            Spacer()
+                                Spacer()
 
-                            VStack(alignment: .trailing, spacing: 2) {
-                                if entry.beforeContractedHours > 0 {
-                                    Text("Before: \(formatMinutes(entry.beforeContractedHours))")
-                                        .font(.caption2)
-                                        .foregroundColor(.secondary)
+                                VStack(alignment: .trailing, spacing: 3) {
+                                    if entry.beforeContractedHours > 0 {
+                                        Text("Before: \(formatMinutes(entry.beforeContractedHours))")
+                                            .font(.system(size: 11, weight: .medium))
+                                            .foregroundColor(.white.opacity(0.7))
+                                    }
+                                    if entry.afterContractedHours > 0 {
+                                        Text("After: \(formatMinutes(entry.afterContractedHours))")
+                                            .font(.system(size: 11, weight: .medium))
+                                            .foregroundColor(.white.opacity(0.7))
+                                    }
                                 }
-                                if entry.afterContractedHours > 0 {
-                                    Text("After: \(formatMinutes(entry.afterContractedHours))")
-                                        .font(.caption2)
-                                        .foregroundColor(.secondary)
-                                }
+
+                                Text(entry.totalFormatted)
+                                    .font(.system(size: 16, weight: .bold, design: .rounded))
+                                    .foregroundColor(.white)
+                                    .frame(width: 70, alignment: .trailing)
                             }
-
-                            Text(entry.totalFormatted)
-                                .font(.subheadline)
-                                .fontWeight(.semibold)
-                                .foregroundColor(.blue)
-                                .frame(width: 70, alignment: .trailing)
+                            .padding(.vertical, 6)
+                            .padding(.horizontal, 12)
+                            .background(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .fill(Color.white.opacity(0.1))
+                            )
                         }
-                        .padding(.vertical, 4)
                     }
+                    .padding(.horizontal)
+                    .padding(.bottom)
                 }
+                .transition(.opacity.combined(with: .move(edge: .top)))
             }
         }
-        .padding()
         .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color(UIColor.secondarySystemBackground))
+            RoundedRectangle(cornerRadius: 18)
+                .fill(
+                    LinearGradient(
+                        gradient: Gradient(colors: [Color.white.opacity(0.25), Color.white.opacity(0.15)]),
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .shadow(color: Color.black.opacity(0.15), radius: 8, x: 0, y: 4)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 18)
+                .stroke(Color.white.opacity(0.3), lineWidth: 1)
         )
     }
 

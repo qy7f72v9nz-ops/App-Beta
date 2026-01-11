@@ -10,77 +10,142 @@ import SwiftUI
 struct DayEntryCard: View {
     @EnvironmentObject var dataManager: OvertimeDataManager
     let date: Date
+    @Binding var isSelected: Bool
 
     @State private var beforeMinutes: Int = 0
     @State private var afterMinutes: Int = 0
     @State private var showingSaved = false
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            // Day Header
-            HStack {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(dayName)
-                        .font(.headline)
-                        .fontWeight(.bold)
-                    Text(dateFormatted)
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
+        VStack(alignment: .leading, spacing: 0) {
+            // Day Header - Always Visible
+            Button(action: {
+                withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                    isSelected.toggle()
                 }
-
-                Spacer()
-
-                if totalMinutes > 0 {
-                    VStack(alignment: .trailing, spacing: 2) {
-                        Text("Total")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                        Text(totalFormatted)
-                            .font(.title3)
-                            .fontWeight(.semibold)
-                            .foregroundColor(.blue)
-                    }
-                }
-            }
-
-            Divider()
-
-            // Before Contracted Hours
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Before Contracted Hours")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-
-                TimeInputView(minutes: $beforeMinutes, label: "Before")
-            }
-
-            // After Contracted Hours
-            VStack(alignment: .leading, spacing: 8) {
-                Text("After Contracted Hours")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-
-                TimeInputView(minutes: $afterMinutes, label: "After")
-            }
-
-            // Save Button
-            Button(action: saveEntry) {
+            }) {
                 HStack {
-                    Image(systemName: showingSaved ? "checkmark.circle.fill" : "square.and.arrow.down")
-                    Text(showingSaved ? "Saved!" : "Save")
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(dayName)
+                            .font(.system(size: 22, weight: .bold, design: .rounded))
+                            .foregroundColor(.white)
+                        Text(dateFormatted)
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(.white.opacity(0.7))
+                    }
+
+                    Spacer()
+
+                    if totalMinutes > 0 {
+                        VStack(alignment: .trailing, spacing: 2) {
+                            Text("TOTAL")
+                                .font(.system(size: 10, weight: .bold))
+                                .foregroundColor(.white.opacity(0.7))
+                                .tracking(1)
+                            Text(totalFormatted)
+                                .font(.system(size: 22, weight: .bold, design: .rounded))
+                                .foregroundColor(.white)
+                        }
+                    }
+
+                    Image(systemName: "chevron.down")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(.white.opacity(0.7))
+                        .rotationEffect(.degrees(isSelected ? 180 : 0))
+                        .animation(.spring(response: 0.3), value: isSelected)
                 }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 12)
-                .background(showingSaved ? Color.green : Color.blue)
-                .foregroundColor(.white)
-                .cornerRadius(8)
+                .padding()
             }
-            .disabled(showingSaved)
+
+            // Expanded Content
+            if isSelected {
+                VStack(alignment: .leading, spacing: 20) {
+                    Divider()
+                        .background(Color.white.opacity(0.3))
+                        .padding(.horizontal)
+
+                    // Before Contracted Hours
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Before Contracted Hours")
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundColor(.white)
+                            .padding(.horizontal)
+
+                        TimeInputView(minutes: $beforeMinutes, label: "Before")
+                            .padding(.horizontal)
+                    }
+
+                    // After Contracted Hours
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("After Contracted Hours")
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundColor(.white)
+                            .padding(.horizontal)
+
+                        TimeInputView(minutes: $afterMinutes, label: "After")
+                            .padding(.horizontal)
+                    }
+
+                    // Save Button
+                    Button(action: saveEntry) {
+                        HStack(spacing: 10) {
+                            Image(systemName: showingSaved ? "checkmark.circle.fill" : "square.and.arrow.down")
+                                .font(.system(size: 18))
+                            Text(showingSaved ? "Saved!" : "Save Overtime")
+                                .font(.system(size: 17, weight: .semibold))
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
+                        .background(
+                            showingSaved
+                                ? LinearGradient(
+                                    gradient: Gradient(colors: [Color.green.opacity(0.8), Color.green.opacity(0.6)]),
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                                : LinearGradient(
+                                    gradient: Gradient(colors: [Color.white.opacity(0.35), Color.white.opacity(0.25)]),
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                        )
+                        .foregroundColor(.white)
+                        .cornerRadius(12)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(Color.white.opacity(0.4), lineWidth: 1)
+                        )
+                    }
+                    .disabled(showingSaved)
+                    .padding(.horizontal)
+                    .padding(.bottom)
+                }
+                .transition(.opacity.combined(with: .move(edge: .top)))
+            }
         }
-        .padding()
         .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color(UIColor.secondarySystemBackground))
+            RoundedRectangle(cornerRadius: 20)
+                .fill(
+                    isSelected
+                        ? LinearGradient(
+                            gradient: Gradient(colors: [
+                                Color(red: 0.6, green: 0.3, blue: 1.0),
+                                Color(red: 0.4, green: 0.5, blue: 1.0)
+                            ]),
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                        : LinearGradient(
+                            gradient: Gradient(colors: [Color.white.opacity(0.25), Color.white.opacity(0.15)]),
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                )
+                .shadow(color: Color.black.opacity(isSelected ? 0.25 : 0.1), radius: isSelected ? 12 : 5, x: 0, y: isSelected ? 6 : 3)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 20)
+                .stroke(Color.white.opacity(isSelected ? 0.5 : 0.2), lineWidth: isSelected ? 2 : 1)
         )
         .onAppear {
             loadEntry()
@@ -95,7 +160,7 @@ struct DayEntryCard: View {
 
     private var dateFormatted: String {
         let formatter = DateFormatter()
-        formatter.dateFormat = "MMMM d, yyyy"
+        formatter.dateFormat = "MMMM d"
         return formatter.string(from: date)
     }
 
@@ -132,7 +197,7 @@ struct DayEntryCard: View {
             showingSaved = true
         }
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
             withAnimation {
                 showingSaved = false
             }
@@ -151,17 +216,25 @@ struct TimeInputView: View {
     var body: some View {
         HStack(spacing: 12) {
             // Display Current Time
-            HStack {
-                Image(systemName: "clock")
-                    .foregroundColor(.blue)
+            HStack(spacing: 10) {
+                Image(systemName: "clock.fill")
+                    .foregroundColor(.white)
+                    .font(.system(size: 16))
                 Text(timeFormatted)
-                    .font(.body)
-                    .fontWeight(.medium)
+                    .font(.system(size: 18, weight: .semibold, design: .rounded))
+                    .foregroundColor(.white)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding()
-            .background(Color(UIColor.systemBackground))
-            .cornerRadius(8)
+            .padding(.vertical, 14)
+            .padding(.horizontal, 16)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color.white.opacity(0.2))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(Color.white.opacity(0.3), lineWidth: 1)
+            )
 
             // Edit Button
             Button(action: {
@@ -170,58 +243,129 @@ struct TimeInputView: View {
                 showingPicker = true
             }) {
                 Image(systemName: "pencil.circle.fill")
-                    .font(.title2)
-                    .foregroundColor(.blue)
+                    .font(.system(size: 32))
+                    .foregroundColor(.white)
+                    .shadow(color: .black.opacity(0.2), radius: 2, x: 0, y: 1)
             }
         }
         .sheet(isPresented: $showingPicker) {
             NavigationView {
-                VStack(spacing: 20) {
-                    Text("Set Time")
-                        .font(.headline)
-                        .padding(.top)
+                ZStack {
+                    LinearGradient(
+                        gradient: Gradient(colors: [
+                            Color(red: 0.4, green: 0.2, blue: 0.8),
+                            Color(red: 0.3, green: 0.5, blue: 0.95)
+                        ]),
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                    .ignoresSafeArea()
 
-                    HStack(spacing: 20) {
-                        // Hours Picker
-                        VStack {
-                            Text("Hours")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                            Picker("Hours", selection: $hours) {
-                                ForEach(0..<24) { hour in
-                                    Text("\(hour)").tag(hour)
+                    VStack(spacing: 30) {
+                        Text("Set Time")
+                            .font(.system(size: 28, weight: .bold, design: .rounded))
+                            .foregroundColor(.white)
+                            .padding(.top, 40)
+
+                        HStack(spacing: 30) {
+                            // Hours Picker
+                            VStack(spacing: 12) {
+                                Text("HOURS")
+                                    .font(.system(size: 13, weight: .bold))
+                                    .foregroundColor(.white.opacity(0.7))
+                                    .tracking(1.5)
+                                Picker("Hours", selection: $hours) {
+                                    ForEach(0..<24) { hour in
+                                        Text("\(hour)")
+                                            .foregroundColor(.white)
+                                            .font(.system(size: 20, weight: .semibold, design: .rounded))
+                                            .tag(hour)
+                                    }
                                 }
+                                .pickerStyle(.wheel)
+                                .frame(width: 120, height: 180)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 16)
+                                        .fill(Color.white.opacity(0.15))
+                                )
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 16)
+                                        .stroke(Color.white.opacity(0.3), lineWidth: 1)
+                                )
                             }
-                            .pickerStyle(.wheel)
-                            .frame(width: 100)
+
+                            // Minutes Picker
+                            VStack(spacing: 12) {
+                                Text("MINUTES")
+                                    .font(.system(size: 13, weight: .bold))
+                                    .foregroundColor(.white.opacity(0.7))
+                                    .tracking(1.5)
+                                Picker("Minutes", selection: $mins) {
+                                    ForEach(0..<60) { minute in
+                                        Text("\(minute)")
+                                            .foregroundColor(.white)
+                                            .font(.system(size: 20, weight: .semibold, design: .rounded))
+                                            .tag(minute)
+                                    }
+                                }
+                                .pickerStyle(.wheel)
+                                .frame(width: 120, height: 180)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 16)
+                                        .fill(Color.white.opacity(0.15))
+                                )
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 16)
+                                        .stroke(Color.white.opacity(0.3), lineWidth: 1)
+                                )
+                            }
                         }
 
-                        // Minutes Picker
-                        VStack {
-                            Text("Minutes")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                            Picker("Minutes", selection: $mins) {
-                                ForEach(0..<60) { minute in
-                                    Text("\(minute)").tag(minute)
-                                }
+                        Spacer()
+
+                        HStack(spacing: 16) {
+                            Button("Cancel") {
+                                showingPicker = false
                             }
-                            .pickerStyle(.wheel)
-                            .frame(width: 100)
+                            .font(.system(size: 18, weight: .semibold))
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 16)
+                            .background(
+                                RoundedRectangle(cornerRadius: 14)
+                                    .fill(Color.white.opacity(0.2))
+                            )
+                            .foregroundColor(.white)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 14)
+                                    .stroke(Color.white.opacity(0.3), lineWidth: 1)
+                            )
+
+                            Button("Done") {
+                                minutes = hours * 60 + mins
+                                showingPicker = false
+                            }
+                            .font(.system(size: 18, weight: .bold))
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 16)
+                            .background(
+                                LinearGradient(
+                                    gradient: Gradient(colors: [Color.white.opacity(0.4), Color.white.opacity(0.3)]),
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
+                            .foregroundColor(.white)
+                            .cornerRadius(14)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 14)
+                                    .stroke(Color.white.opacity(0.5), lineWidth: 1.5)
+                            )
                         }
+                        .padding(.horizontal, 24)
+                        .padding(.bottom, 40)
                     }
-
-                    Spacer()
                 }
-                .navigationBarItems(
-                    leading: Button("Cancel") {
-                        showingPicker = false
-                    },
-                    trailing: Button("Done") {
-                        minutes = hours * 60 + mins
-                        showingPicker = false
-                    }
-                )
+                .navigationBarHidden(true)
             }
         }
     }

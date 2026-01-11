@@ -11,62 +11,83 @@ struct WeekOverviewView: View {
     @EnvironmentObject var dataManager: OvertimeDataManager
 
     var body: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 16) {
             // Week Header
             HStack {
                 Text(weekRangeText)
-                    .font(.headline)
-                    .foregroundColor(.secondary)
+                    .font(.system(size: 18, weight: .semibold, design: .rounded))
+                    .foregroundColor(.white)
 
                 Spacer()
 
                 VStack(alignment: .trailing, spacing: 2) {
-                    Text("Weekly Total")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                    Text("WEEKLY TOTAL")
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundColor(.white.opacity(0.7))
+                        .tracking(1)
                     Text(weeklyTotal)
-                        .font(.title2)
-                        .fontWeight(.bold)
-                        .foregroundColor(.blue)
+                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                        .foregroundColor(.white)
+                        .shadow(color: .black.opacity(0.2), radius: 2, x: 0, y: 1)
                 }
             }
 
             // Days of Week with Totals
-            HStack(spacing: 8) {
+            HStack(spacing: 6) {
                 ForEach(dataManager.getWeekDates(), id: \.self) { date in
-                    VStack(spacing: 4) {
+                    VStack(spacing: 6) {
                         Text(dayLetter(for: date))
-                            .font(.caption2)
-                            .fontWeight(.semibold)
-                            .foregroundColor(.secondary)
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundColor(.white.opacity(0.9))
 
                         Text(dayNumber(for: date))
-                            .font(.caption)
-                            .fontWeight(isToday(date) ? .bold : .regular)
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(.white)
 
                         Text(dailyTotal(for: date))
-                            .font(.caption2)
-                            .foregroundColor(hasOvertime(for: date) ? .blue : .gray)
-                            .fontWeight(hasOvertime(for: date) ? .semibold : .regular)
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundColor(.white.opacity(hasOvertime(for: date) ? 1.0 : 0.5))
                     }
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 8)
+                    .padding(.vertical, 12)
                     .background(
-                        RoundedRectangle(cornerRadius: 8)
-                            .fill(isToday(date) ? Color.blue.opacity(0.1) : Color.gray.opacity(0.05))
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(
+                                isToday(date)
+                                    ? LinearGradient(
+                                        gradient: Gradient(colors: [Color.white.opacity(0.35), Color.white.opacity(0.25)]),
+                                        startPoint: .top,
+                                        endPoint: .bottom
+                                    )
+                                    : LinearGradient(
+                                        gradient: Gradient(colors: [Color.white.opacity(0.15), Color.white.opacity(0.1)]),
+                                        startPoint: .top,
+                                        endPoint: .bottom
+                                    )
+                            )
                     )
                     .overlay(
-                        RoundedRectangle(cornerRadius: 8)
-                            .stroke(isToday(date) ? Color.blue : Color.clear, lineWidth: 2)
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(Color.white.opacity(isToday(date) ? 0.5 : 0.2), lineWidth: 1.5)
                     )
                 }
             }
         }
-        .padding()
+        .padding(20)
         .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color(UIColor.systemBackground))
-                .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
+            RoundedRectangle(cornerRadius: 20)
+                .fill(
+                    LinearGradient(
+                        gradient: Gradient(colors: [Color.white.opacity(0.25), Color.white.opacity(0.15)]),
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .shadow(color: Color.black.opacity(0.15), radius: 10, x: 0, y: 5)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 20)
+                .stroke(Color.white.opacity(0.3), lineWidth: 1)
         )
     }
 
